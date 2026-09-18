@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Manager - Professional Dashboard</title>
+    <link rel="stylesheet" href="assets/dashboard-new.css">
+    <script src="assets/dashboard-simple.js"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Loading Dashboard...</div>
+            <div class="made-by">Made By Tot</div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="dashboard-container" id="mainContent" style="opacity: 0;">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🏆 Tournament Manager</h2>
+                <p class="creator">Made By Tot</p>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="overview">
+                    <span class="nav-icon"><img src="https://cdn.discordapp.com/emojis/1481391882406985848.png" style="width: 20px; height: 20px;"></span>
+                    <span>Analytics</span>
+                </a>
+                <a href="#" class="nav-item" data-page="scheduled">
+                    <span class="nav-icon"><img src="https://cdn.discordapp.com/emojis/1513249074575573072.png" style="width: 20px; height: 20px;"></span>
+                    <span>Schedule</span>
+                </a>
+                <a href="#" class="nav-item" data-page="shop">
+                    <span class="nav-icon">🛒</span>
+                    <span>Shop</span>
+                </a>
+                <div style="margin: 20px 0; height: 1px; background: rgba(255, 255, 255, 0.05);"></div>
+                <a href="#" class="nav-item" data-page="wagers">
+                    <span class="nav-icon">💰</span>
+                    <span>Wagers</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="footer-info">
+                    <p>StumbleCups Tournament SDK</p>
+                    <p class="version">v1.0.0</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="content-header" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; background: #0a0a0a; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                <div class="header-left">
+                    <h1 id="pageTitle" style="font-size: 28px; font-weight: 700; margin: 0; color: white;">Dashboard Overview</h1>
+                    <p class="header-subtitle" style="margin: 5px 0 0 0; color: #666; font-size: 13px;">Manage and monitor tournaments</p>
+                </div>
+                <div class="header-actions" style="display: flex; align-items: center; gap: 15px;">
+                    <!-- User ID Badge (Prominent) -->
+                    <div id="headerUserIdDisplay" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 165, 0, 0.15)); border-radius: 10px; border: 2px solid rgba(255, 215, 0, 0.3); cursor: pointer;" title="Your User ID - Share this with admins to receive credits">
+                        <span style="font-size: 13px; color: #FFD700; font-weight: 600;">🆔 ID:</span>
+                        <span id="headerUserIdValue" style="font-size: 16px; font-weight: 700; color: #FFD700; letter-spacing: 1px;">00000</span>
+                    </div>
+                    
+                    <!-- Credits Display -->
+                    <div id="headerCreditsDisplay" style="display: flex; align-items: center; gap: 10px; padding: 8px 16px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); cursor: pointer;" title="Your credit balance - Each tournament costs 1 credit">
+                        <img src="credits.png" style="width: 20px; height: 20px; object-fit: contain;">
+                        <span id="headerCreditsValue" style="font-size: 14px; font-weight: 600; color: white;">0 Credits</span>
+                    </div>
+                    
+                    <!-- Notification Bell -->
+                    <button style="background: transparent; border: none; cursor: pointer; padding: 8px; color: #888; font-size: 18px; transition: color 0.3s;">
+                        🔔
+                    </button>
+                    
+                    <!-- User Avatar -->
+                    <div id="headerUserAvatar" style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: white; cursor: pointer;">
+                        U
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="content-body" id="contentBody">
+                <!-- Overview Page (Default) -->
+                <div class="page-content" id="overviewPage">
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center;">
+                        <div style="width: 80px; height: 80px; background: rgba(255, 255, 255, 0.03); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                            <span style="font-size: 40px;">🏆</span>
+                        </div>
+                        <h2 style="font-size: 20px; font-weight: 600; color: white; margin: 0 0 12px 0;">No Tournaments Hosted</h2>
+                        <p style="font-size: 14px; color: #666; max-width: 400px; line-height: 1.6;">Your tournament history and performance metrics will appear here once you've hosted your first event.</p>
+                    </div>
+                </div>
+
+                <!-- Create Tournament Page -->
+                <div class="page-content" id="createPage" style="display: none;">
+                    <div class="wizard-container">
+                        <button class="back-btn" onclick="navigateToPage('scheduled')">← Back</button>
+                        
+                        <div class="wizard-header">
+                            <h1>Create Tournament</h1>
+                            <p>Create and manage your tournament</p>
+                            <div style="margin-top: 16px; padding: 12px 16px; background: rgba(255, 215, 0, 0.1); border: 2px solid rgba(255, 215, 0, 0.3); border-radius: 10px; display: flex; align-items: center; gap: 12px;">
+                                <img src="credits.png" style="width: 24px; height: 24px; object-fit: contain;">
+                                <div style="flex: 1;">
+                                    <div style="font-size: 14px; font-weight: 700; color: #FFD700; margin-bottom: 4px;">⚠️ Cost: 1 Credit Per Tournament</div>
+                                    <div style="font-size: 12px; color: #FFB700;">Creating this tournament will deduct 1 credit from your balance.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="wizard-sidebar">
+                            <div class="progress-section">
+                                <div class="section-label">GENERAL</div>
+                                <div class="progress-item active" data-step="1">
+                                    <span class="step-number">1</span>
+                                    <span>Description</span>
+                                </div>
+                            </div>
+                            
+                            <div class="schedule-fee" title="Each tournament costs 1 credit">
+                                <img src="credits.png" style="width: 18px; height: 18px; border-radius: 50%;">
+                                <span>1 Credit Required</span>
+                            </div>
+                        </div>
+
+                        <form id="createTournamentForm" style="display: contents;">
+                            <div class="wizard-content">
+                                <div class="form-section">
+                                    <label class="form-label">TOURNAMENT IMAGE</label>
+                                    <div class="upload-placeholder" style="min-height: 200px; border: 2px dashed rgba(255,255,255,0.1); border-radius: 12px; background: rgba(255,255,255,0.02); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px;">
+                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color: #4a4a52; margin-bottom: 16px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                                        <h3 style="font-size: 16px; margin: 0 0 8px;">No image yet</h3>
+                                        <p style="font-size: 12px; color: #777; margin: 0 0 16px;">Upload an image or create one</p>
+                                        <div style="display: flex; gap: 12px;">
+                                            <button type="button" class="btn-secondary" style="padding: 8px 16px; font-size: 13px;">Upload</button>
+                                            <button type="button" class="btn-secondary" style="padding: 8px 16px; font-size: 13px;">Create</button>
+                                        </div>
+                                        <p style="font-size: 11px; color: #555; margin-top: 12px;">Or drag & drop an image here</p>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">TOURNAMENT TITLE *</label>
+                                        <input type="text" id="tournamentName" class="form-input" placeholder="My Tournament Name..." required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">REGION *</label>
+                                        <select id="tournamentRegion" class="form-select" required>
+                                            <option value="0">🌍 Europe</option>
+                                            <option value="1">🌎 North America</option>
+                                            <option value="2">🌎 South America</option>
+                                            <option value="3">🌏 Asia</option>
+                                            <option value="4">🌏 Oceania</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">MODE *</label>
+                                        <select id="tournamentMode" class="form-select" required>
+                                            <option value="1">1v1</option>
+                                            <option value="2">2v2</option>
+                                            <option value="3">3v3</option>
+                                            <option value="4">4v4</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">MAXIMUM PLAYERS *</label>
+                                        <select id="maxParticipants" class="form-select" required>
+                                            <option value="32">👥 32 Players</option>
+                                            <option value="64">👥 64 Players</option>
+                                            <option value="128">👥 128 Players</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">MAP *</label>
+                                        <select id="mapSelection" class="form-select" required>
+                                            <option value="BlockDash">Block Dash</option>
+                                            <option value="LaserTracer">Laser Tracer</option>
+                                            <option value="PaintBrawl">Paint Brawl</option>
+                                            <option value="Bombardment">Bombardment</option>
+                                            <option value="RushHour">Rush Hour</option>
+                                            <option value="LaserDash">Laser Dash</option>
+                                            <option value="SpaceDroop">Space Droop</option>
+                                            <option value="PaintSplash">Paint Splash</option>
+                                            <option value="LavaRush">Lava Rush</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">ROUNDS (AUTO-CALCULATED)</label>
+                                        <div id="roundsDisplay" class="form-input" style="background: rgba(255, 255, 255, 0.03); display: flex; align-items: center; justify-content: space-between; cursor: not-allowed;">
+                                            <span id="roundsText" style="color: #888;">Select players first</span>
+                                            <span style="font-size: 12px; color: #666;">🔒 Auto</span>
+                                        </div>
+                                        <input type="hidden" id="roundCount" value="5">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">⏰ START TIME (OPTIONAL)</label>
+                                    <input type="datetime-local" id="scheduledDate" class="form-input">
+                                    <small style="font-size: 11px; color: #666; margin-top: 6px; display: block;">Leave empty for immediate start</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">DESCRIPTION</label>
+                                    <textarea id="tournamentDescription" class="form-input" rows="3" placeholder="Tournament description..." style="resize: vertical; min-height: 80px;"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="wizard-footer">
+                                <button type="button" class="btn-secondary" id="cancelCreateBtn">
+                                    ❌ Cancel
+                                </button>
+                                <button type="submit" class="btn-primary">
+                                    🚀 Create Tournament
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Active Tournaments Page -->
+                <div class="page-content" id="activePage" style="display: none;">
+                    <div class="page-header">
+                        <h2>Active Tournaments</h2>
+                        <p class="page-subtitle">Currently running tournaments</p>
+                    </div>
+                    <div class="tournament-list" id="activeTournamentsList">
+                        <div class="empty-state">
+                            <p>No active tournaments</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scheduled Page -->
+                <div class="page-content" id="scheduledPage" style="display: none;">
+                    <div style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
+                        <h1 style="font-size: 32px; font-weight: 700; color: white; margin: 0;">Schedule</h1>
+                        <button class="btn btn-primary" id="newTournamentBtn" style="padding: 10px 20px; background: white; color: black; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                            ➕ New Tournament
+                        </button>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center;">
+                        <div style="flex: 1; position: relative;">
+                            <input type="text" id="searchTournaments" placeholder="🔍 Search tournaments..." style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white; font-size: 14px;">
+                        </div>
+                        <button style="padding: 10px 16px; background: transparent; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white; cursor: pointer;">
+                            🔄
+                        </button>
+                        <div style="display: flex; gap: 10px; background: rgba(255, 255, 255, 0.03); padding: 4px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                            <button class="filter-btn active" data-filter="all" style="padding: 8px 16px; background: white; color: black; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
+                                All Tournaments
+                            </button>
+                            <button class="filter-btn" data-filter="my" style="padding: 8px 16px; background: transparent; color: #888; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
+                                My Tournaments
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="tournament-list" id="scheduledTournamentsList">
+                        <div class="empty-state" style="text-align: center; padding: 60px 20px; color: #666;">
+                            <p>No scheduled tournaments</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shop Page -->
+                <div class="page-content" id="shopPage" style="display: none;">
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center;">
+                        <div style="width: 80px; height: 80px; background: rgba(255, 255, 255, 0.03); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                            <span style="font-size: 40px;">🛒</span>
+                        </div>
+                        <h2 style="font-size: 20px; font-weight: 600; color: white; margin: 0 0 12px 0;">Shop Coming Soon</h2>
+                        <p style="font-size: 14px; color: #666; max-width: 400px; line-height: 1.6;">Purchase credits and tournament packages here.</p>
+                    </div>
+                </div>
+
+                <!-- Wagers Page -->
+                <div class="page-content" id="wagersPage" style="display: none;">
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center;">
+                        <div style="width: 80px; height: 80px; background: rgba(255, 255, 255, 0.03); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                            <span style="font-size: 40px;">💰</span>
+                        </div>
+                        <h2 style="font-size: 20px; font-weight: 600; color: white; margin: 0 0 12px 0;">Wagers Coming Soon</h2>
+                        <p style="font-size: 14px; color: #666; max-width: 400px; line-height: 1.6;">Create and manage wager matches here.</p>
+                    </div>
+                </div>
+
+                <!-- History Page -->
+                <div class="page-content" id="historyPage" style="display: none;">
+                    <div class="page-header">
+                        <h2>Tournament History</h2>
+                        <p class="page-subtitle">Completed tournaments</p>
+                    </div>
+                    <div class="tournament-list" id="historyTournamentsList">
+                        <div class="empty-state">
+                            <p>No completed tournaments</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Page -->
+                <div class="page-content" id="settingsPage" style="display: none;">
+                    <div class="page-header">
+                        <h2>Settings</h2>
+                        <p class="page-subtitle">Configure dashboard preferences</p>
+                    </div>
+                    <div class="settings-container">
+                        <div class="setting-group">
+                            <h3>General Settings</h3>
+                            <div class="setting-item">
+                                <div class="setting-label">
+                                    <label>Auto-refresh tournaments</label>
+                                    <p>Automatically update tournament data</p>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="autoRefresh" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-label">
+                                    <label>Refresh interval (seconds)</label>
+                                    <p>How often to refresh data</p>
+                                </div>
+                                <input type="number" id="refreshInterval" value="30" min="10" max="300" class="setting-input">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+</body>
+</html>

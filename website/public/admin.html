@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stumble Arab - Admin</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f1419; color: #e4e6eb; min-height: 100vh; }
+        .header { background: #1a1d21; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2f3337; }
+        .header h1 { font-size: 20px; color: #5865F2; }
+        .header .user-info { display: flex; align-items: center; gap: 12px; }
+        .header .user-info span { color: #b5bac1; }
+        .header .credits-badge { background: #5865F2; color: white; padding: 4px 12px; border-radius: 12px; font-weight: bold; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s; }
+        .btn-primary { background: #5865F2; color: white; }
+        .btn-primary:hover { background: #4752C4; }
+        .btn-danger { background: #ED4245; color: white; }
+        .btn-danger:hover { background: #C03537; }
+        .btn-secondary { background: #2f3337; color: #b5bac1; }
+        .btn-secondary:hover { background: #383c43; }
+        .btn-success { background: #248046; color: white; }
+        .btn-success:hover { background: #1d6337; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        .tabs { display: flex; gap: 4px; margin-bottom: 24px; background: #1a1d21; border-radius: 8px; padding: 4px; }
+        .tab { padding: 10px 20px; border-radius: 6px; cursor: pointer; color: #b5bac1; transition: all 0.2s; border: none; background: none; font-size: 14px; font-weight: 600; }
+        .tab.active { background: #5865F2; color: white; }
+        .tab:hover:not(.active) { background: #2f3337; }
+        .panel { display: none; }
+        .panel.active { display: block; }
+        .card { background: #1a1d21; border-radius: 8px; padding: 20px; margin-bottom: 16px; border: 1px solid #2f3337; }
+        .card h2 { font-size: 18px; margin-bottom: 16px; color: #e4e6eb; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 13px; color: #b5bac1; margin-bottom: 4px; font-weight: 600; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 10px 12px; background: #0f1419; border: 1px solid #2f3337;
+            border-radius: 6px; color: #e4e6eb; font-size: 14px; outline: none;
+        }
+        .form-group input:focus, .form-group select:focus { border-color: #5865F2; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #2f3337; font-size: 14px; }
+        th { color: #b5bac1; font-weight: 600; font-size: 12px; text-transform: uppercase; }
+        td { color: #e4e6eb; }
+        .role-admin { color: #F0B232; font-weight: bold; }
+        .role-user { color: #b5bac1; }
+        .msg { padding: 10px 16px; border-radius: 6px; margin-bottom: 12px; font-size: 14px; display: none; }
+        .msg.success { background: #248046; color: white; display: block; }
+        .msg.error { background: #ED4245; color: white; display: block; }
+        .logout-btn { background: none; border: 1px solid #ED4245; color: #ED4245; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+        .logout-btn:hover { background: #ED4245; color: white; }
+        .not-admin { text-align: center; padding: 60px 20px; }
+        .not-admin h2 { color: #ED4245; margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Stumble Arab</h1>
+        <div class="user-info">
+            <span id="currentUser">Loading...</span>
+            <span class="credits-badge" id="currentCredits">0</span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container" id="adminContent" style="display:none;">
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('credits')">Give Credits</button>
+            <button class="tab" onclick="switchTab('users')">All Users</button>
+            <button class="tab" onclick="switchTab('tournament')">Create Tournament</button>
+        </div>
+
+        <!-- GIVE CREDITS -->
+        <div class="panel active" id="panel-credits">
+            <div class="card">
+                <h2>Give / Set Credits</h2>
+                <div id="creditsMsg" class="msg"></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="creditUsername" placeholder="e.g. 1234">
+                    </div>
+                    <div class="form-group">
+                        <label>Amount</label>
+                        <input type="number" id="creditAmount" placeholder="e.g. 1000" min="0">
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:8px;">
+                    <button class="btn btn-success" onclick="addCredits()">Add Credits</button>
+                    <button class="btn btn-primary" onclick="setCredits()">Set Credits</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ALL USERS -->
+        <div class="panel" id="panel-users">
+            <div class="card">
+                <h2>All Users</h2>
+                <button class="btn btn-secondary" onclick="loadUsers()" style="margin-bottom:12px;">Refresh</button>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Credits</th>
+                            <th>Role</th>
+                            <th>Tournaments</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- CREATE TOURNAMENT -->
+        <div class="panel" id="panel-tournament">
+            <div class="card">
+                <h2>Create Tournament (1 Credit)</h2>
+                <div id="tournamentMsg" class="msg"></div>
+                <div class="form-group">
+                    <label>Tournament Name</label>
+                    <input type="text" id="tourneyName" placeholder="My Tournament">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Mode (Team Size)</label>
+                        <select id="tourneyMode">
+                            <option value="1">Solo (1v1)</option>
+                            <option value="2">Duo (2v2)</option>
+                            <option value="3">Trio (3v3)</option>
+                            <option value="4">Squad (4v4)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Region</label>
+                        <select id="tourneyRegion">
+                            <option value="0">NA East</option>
+                            <option value="1">NA West</option>
+                            <option value="2">Europe</option>
+                            <option value="3">Asia</option>
+                            <option value="4">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Max Participants</label>
+                        <select id="tourneyMax">
+                            <option value="8">8</option>
+                            <option value="16">16</option>
+                            <option value="32" selected>32</option>
+                            <option value="64">64</option>
+                            <option value="128">128</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Map</label>
+                        <select id="tourneyMap">
+                            <option value="BlockDash">BlockDash</option>
+                            <option value="CannonEnvoy">CannonEnvoy</option>
+                            <option value="RocketBall">RocketBall</option>
+                            <option value="HoneyThief">HoneyThief</option>
+                            <option value="JellyClimbers">JellyClimbers</option>
+                            <option value="MapGodV2">MapGodV2</option>
+                            <option value="CrownRush">CrownRush</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Rounds</label>
+                    <input type="number" id="tourneyRounds" value="3" min="1" max="10">
+                </div>
+                <button class="btn btn-primary" onclick="createTournament()">Create Tournament</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="notAdmin" style="display:none;">
+        <div class="not-admin">
+            <h2>Access Denied</h2>
+            <p>You need admin privileges to access this panel.</p>
+            <p style="margin-top:8px;color:#b5bac1;">Current role: <span id="deniedRole"></span></p>
+            <a href="/dashboard.html" class="btn btn-primary" style="margin-top:16px;display:inline-block;text-decoration:none;">Go to Dashboard</a>
+        </div>
+    </div>
+
+    <script>
+        const API = '';
+        let token = localStorage.getItem('token');
+        let currentUser = null;
+
+        async function init() {
+            if (!token) { window.location.href = '/login.html'; return; }
+
+            try {
+                const res = await fetch(API + '/api/auth/me', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+
+                if (!data.success || !data.user) {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                currentUser = data.user;
+                document.getElementById('currentUser').textContent = currentUser.username;
+                document.getElementById('currentCredits').textContent = currentUser.credits.toLocaleString() + ' Credits';
+
+                if (currentUser.role !== 'admin') {
+                    document.getElementById('deniedRole').textContent = currentUser.role;
+                    document.getElementById('notAdmin').style.display = 'block';
+                    return;
+                }
+
+                document.getElementById('adminContent').style.display = 'block';
+            } catch (e) {
+                localStorage.removeItem('token');
+                window.location.href = '/login.html';
+            }
+        }
+
+        function switchTab(name) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('panel-' + name).classList.add('active');
+
+            if (name === 'users') loadUsers();
+        }
+
+        async function addCredits() {
+            const username = document.getElementById('creditUsername').value.trim();
+            const amount = parseInt(document.getElementById('creditAmount').value);
+            if (!username || !amount || amount <= 0) {
+                showMsg('creditsMsg', 'Enter username and positive amount', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(API + '/api/credits/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ username, amount })
+                });
+                const data = await res.json();
+                showMsg('creditsMsg', data.message || data.error, data.success ? 'success' : 'error');
+                if (data.success) refreshUserInfo();
+            } catch (e) {
+                showMsg('creditsMsg', 'Network error', 'error');
+            }
+        }
+
+        async function setCredits() {
+            const username = document.getElementById('creditUsername').value.trim();
+            const amount = parseInt(document.getElementById('creditAmount').value);
+            if (!username || amount === undefined || amount < 0) {
+                showMsg('creditsMsg', 'Enter username and amount', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(API + '/api/credits/set', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ username, amount })
+                });
+                const data = await res.json();
+                showMsg('creditsMsg', data.message || data.error, data.success ? 'success' : 'error');
+                if (data.success) refreshUserInfo();
+            } catch (e) {
+                showMsg('creditsMsg', 'Network error', 'error');
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const res = await fetch(API + '/api/users/list', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+                if (!data.success) return;
+
+                const tbody = document.getElementById('usersTable');
+                tbody.innerHTML = data.users.map(u => `
+                    <tr>
+                        <td>${u.username}</td>
+                        <td>${u.credits.toLocaleString()}</td>
+                        <td class="${u.role === 'admin' ? 'role-admin' : 'role-user'}">${u.role}</td>
+                        <td>${u.tournamentsCreated || 0}</td>
+                        <td>${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'}</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error('Failed to load users:', e);
+            }
+        }
+
+        async function createTournament() {
+            const name = document.getElementById('tourneyName').value.trim();
+            const mode = document.getElementById('tourneyMode').value;
+            const region = document.getElementById('tourneyRegion').value;
+            const maxParticipants = document.getElementById('tourneyMax').value;
+            const map = document.getElementById('tourneyMap').value;
+            const roundCount = document.getElementById('tourneyRounds').value;
+
+            if (!name) {
+                showMsg('tournamentMsg', 'Enter a tournament name', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(API + '/api/tournaments/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ name, mode, region, maxParticipants, map, roundCount })
+                });
+                const data = await res.json();
+                showMsg('tournamentMsg', data.message || data.error, data.success ? 'success' : 'error');
+                if (data.success) {
+                    refreshUserInfo();
+                    document.getElementById('tourneyName').value = '';
+                }
+            } catch (e) {
+                showMsg('tournamentMsg', 'Network error', 'error');
+            }
+        }
+
+        async function refreshUserInfo() {
+            try {
+                const res = await fetch(API + '/api/auth/me', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+                if (data.success && data.user) {
+                    currentUser = data.user;
+                    document.getElementById('currentCredits').textContent = currentUser.credits.toLocaleString() + ' Credits';
+                }
+            } catch (e) {}
+        }
+
+        function showMsg(id, text, type) {
+            const el = document.getElementById(id);
+            el.textContent = text;
+            el.className = 'msg ' + type;
+            setTimeout(() => { el.className = 'msg'; }, 4000);
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+        }
+
+        init();
+    </script>
+</body>
+</html>

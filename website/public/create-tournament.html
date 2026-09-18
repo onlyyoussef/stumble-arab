@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Tournament - Tournament Manager</title>
+    <link rel="stylesheet" href="assets/create-tournament.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <button class="back-btn" onclick="goBack()">← Back</button>
+
+            <div class="section-title">📋 GENERAL</div>
+            <div class="step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-title">Description</div>
+            </div>
+            <div class="step" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-title">Registration</div>
+            </div>
+
+            <div class="section-title">⚙️ PARTICIPATION</div>
+            <div class="step" data-step="3">
+                <div class="step-number">3</div>
+                <div class="step-title">Format</div>
+            </div>
+            <div class="step" data-step="4">
+                <div class="step-number">4</div>
+                <div class="step-title">Maps & Emotes</div>
+            </div>
+
+            <div class="section-title">📅 DATE</div>
+            <div class="step" data-step="5">
+                <div class="step-number">5</div>
+                <div class="step-title">Date & Time</div>
+            </div>
+
+            <div class="schedule-fee">
+                <img src="credits.png" alt="Credit">
+                <span>💰 1 Credit Required</span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <!-- Content will be loaded here by JavaScript -->
+        </div>
+    </div>
+
+    <script src="assets/create-tournament.js"></script>
+</body>
+</html>

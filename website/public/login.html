@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stumble Arab - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #121212;
+            --bg-tertiary: #1a1a1a;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --accent-purple: #667eea;
+            --accent-blue: #764ba2;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .login-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+        }
+
+        .login-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .login-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: var(--bg-tertiary);
+            padding: 6px;
+            border-radius: 12px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-purple);
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: var(--success);
+        }
+
+        .message.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--error);
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer p {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .made-by {
+            margin-top: 10px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        #registerForm {
+            display: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <h1>🏆 Stumble Arab</h1>
+                <p>Sign in to create and manage tournaments</p>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('login')">Login</button>
+                <button class="tab" onclick="switchTab('register')">Register</button>
+            </div>
+
+            <div id="message" class="message"></div>
+
+            <!-- Login Form -->
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginUsername">Username</label>
+                    <input type="text" id="loginUsername" name="username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" name="password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="submit-btn" id="loginBtn">Sign In</button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="registerUsername">Username</label>
+                    <input type="text" id="registerUsername" name="username" required minlength="3" maxlength="30" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">Email (optional)</label>
+                    <input type="email" id="registerEmail" name="email" autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Password</label>
+                    <input type="password" id="registerPassword" name="password" required minlength="6" autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <label for="registerPasswordConfirm">Confirm Password</label>
+                    <input type="password" id="registerPasswordConfirm" name="passwordConfirm" required minlength="6" autocomplete="new-password">
+                </div>
+                <button type="submit" class="submit-btn" id="registerBtn">Create Account</button>
+            </form>
+
+            <div class="footer">
+                <p>Welcome to Professional Tournament Management</p>
+                <div class="made-by">Made By Tot ❤️</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin + '/api';
+
+        // Switch between login and register tabs
+        function switchTab(tab) {
+            const tabs = document.querySelectorAll('.tab');
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            if (tab === 'login') {
+                tabs[0].classList.add('active');
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+            } else {
+                tabs[1].classList.add('active');
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+            }
+            
+            hideMessage();
+        }
+
+        // Show message
+        function showMessage(text, type = 'error') {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.className = `message ${type} show`;
+        }
+
+        // Hide message
+        function hideMessage() {
+            const message = document.getElementById('message');
+            message.classList.remove('show');
+        }
+
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideMessage();
+            
+            const btn = document.getElementById('loginBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>';
+            
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Save token
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    showMessage('Login successful! Redirecting...', 'success');
+                    
+                    setTimeout(() => {
+                        if (data.user && data.user.role === 'admin') {
+                            window.location.href = '/admin.html';
+                        } else {
+                            window.location.href = '/dashboard.html';
+                        }
+                    }, 1000);
+                } else {
+                    showMessage(data.message || 'Login failed');
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showMessage('Connection error. Please try again.');
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        });
+
+        // Register form handler
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideMessage();
+            
+            const btn = document.getElementById('registerBtn');
+            const originalText = btn.textContent;
+            
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
+            
+            // Validate passwords match
+            if (password !== passwordConfirm) {
+                showMessage('Passwords do not match');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('Account created! Please login.', 'success');
+                    
+                    setTimeout(() => {
+                        switchTab('login');
+                        document.getElementById('loginUsername').value = username;
+                    }, 1500);
+                } else {
+                    showMessage(data.message || 'Registration failed');
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showMessage('Connection error. Please try again.');
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        });
+
+        // Check if already logged in
+        window.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                // Verify token is still valid
+                fetch(`${API_BASE}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.user && data.user.role === 'admin') {
+                            window.location.href = '/admin.html';
+                        } else {
+                            window.location.href = '/dashboard.html';
+                        }
+                    }
+                })
+                .catch(() => {
+                    // Token invalid, clear storage
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
