@@ -889,6 +889,19 @@ App.post("/api/admin/player/rename", async (req, res) => {
   }
 });
 
+// ============= INTERNAL API: Tournaments for game backend =============
+
+App.get("/api/internal/tournaments", async (req, res) => {
+  try {
+    const { Tournament } = await import("../Models/Tournament");
+    const tournaments = await Tournament.find({ Status: { $in: [0, 1] } }).lean();
+    res.json({ success: true, tournaments });
+  } catch (error: any) {
+    console.error("Error fetching internal tournaments:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch tournaments" });
+  }
+});
+
 export default {
   App,
   DefaultAPI: "/",

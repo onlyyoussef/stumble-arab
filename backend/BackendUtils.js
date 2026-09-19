@@ -3726,109 +3726,117 @@ class TournamentXController {
         return t;
       });
 
-      // Busca torneios do website no MongoDB
+      // Busca torneios do website via HTTP API
       try {
-        const websiteTournamentsCollection = database.db.collection("tournaments");
-        const websiteTournaments = await websiteTournamentsCollection.find({
-          Status: { $in: [0, 1] }
-        }).toArray();
+        const websiteUrl = process.env.WEBSITE_URL || "https://confident-bravery-production-958f.up.railway.app";
+        const webResponse = await fetch(websiteUrl + "/api/internal/tournaments", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          signal: AbortSignal.timeout(5000)
+        });
+        if (webResponse.ok) {
+          const webData = await webResponse.json();
+          const websiteTournaments = (webData.tournaments || webData.data || webData || []);
 
-        let webTourneyId = 1000;
-        for (const wt of websiteTournaments) {
-          try {
-            // Status 0 (NotStarted) só mostra se StartTime estiver no futuro
-            if (wt.Status === 0 && wt.StartTime && new Date(wt.StartTime) <= now) {
-              continue;
+          let webTourneyId = 1000;
+          for (const wt of websiteTournaments) {
+            try {
+              if (wt.Status === 0 && wt.StartTime && new Date(wt.StartTime) <= now) {
+                continue;
+              }
+              if (wt.Status === 3 || wt.Status === 4) {
+                continue;
+              }
+
+              const partySize = wt.PartySize || 2;
+              const maps = (wt.Phases && wt.Phases[0] && wt.Phases[0].Maps) || [];
+              const permittedLevels = maps.length > 0 ? maps : ["level19_block"];
+              const roundCount = wt.RoundCount || 1;
+              const tournamentId = parseInt(wt.TournamentId) || (webTourneyId + 500);
+
+              const tourneyStartTime = wt.StartTime ? new Date(wt.StartTime) : startTime;
+              const tourneyEndTime = wt.EndTime ? new Date(wt.EndTime) : endTime;
+
+              const color = wt.TournamentColor || "#667eea";
+
+              const webTournament = {
+                id: tournamentId,
+                type: 1,
+                isEnabled: true,
+                minVersion: "0.50",
+                name: wt.TournamentName || "Website Tournament",
+                nameKey: wt.TournamentName || "Website Tournament",
+                descriptionKey: wt.TournamentName || "Website Tournament",
+                listItemBackgroundImage: "STPBlockDash_Background_Image_Tournaments_Card",
+                detailsPanelBackgroundImage: "STPBlockDash_Background_Image_Tournaments",
+                prizeBannerColour: color,
+                headerColour: color,
+                mapListGradientColourTop: color,
+                mapListGradientColourBottom: color,
+                detailsPanelBorderColourTop: color,
+                detailsPanelBorderColourBottom: color,
+                colourData: {
+                  detailsPanelMainColour: color,
+                  detailsPanelBorderColour: color,
+                  headerGradientRight: color,
+                  headerGradientLeft: color,
+                  infoWidgetsGradientRight: color,
+                  infoWidgetsGradientLeft: color,
+                  infoWidgetsBorderColour: color
+                },
+                listPriority: 50,
+                minPlayers: 2,
+                maxPlayers: partySize === 1 ? 2 : partySize * 2,
+                maxRounds: roundCount,
+                minMatchmakingSeconds: 5,
+                entryCurrencyType: "gems",
+                entryCurrencyCost: 0,
+                entryCurrencyType2: "gems",
+                entryCurrencyCost2: 0,
+                areEmotesRestricted: true,
+                prohibitedEmotes: [2, 4, 5, 6],
+                rounds: [{
+                  roundOrder: 1,
+                  maxPlayersToProgress: 1,
+                  minPlayersPerMatch: partySize === 1 ? 2 : partySize,
+                  maxPlayersPerMatch: partySize === 1 ? 2 : partySize,
+                  areLevelsRestricted: true,
+                  permittedLevels: permittedLevels
+                }],
+                awards: [{
+                  placementRangeLowest: 1,
+                  placementRangeHighest: 1,
+                  awardId: 4,
+                  type: "CURRENCY",
+                  amount: 0,
+                  awardJson: { name: "gems" }
+                }],
+                startTime: tourneyStartTime.toISOString(),
+                endTime: tourneyEndTime.toISOString(),
+                StartDateTime: tourneyStartTime.toISOString(),
+                EndDateTime: tourneyEndTime.toISOString(),
+                Visible: true,
+                maxBots: 0,
+                minBots: 0,
+                startingUsers: partySize === 1 ? 2 : partySize * 2
+              };
+
+              if (webTournament.rounds) {
+                webTournament.rounds.forEach(r => {
+                  r.maxBots = 0;
+                  r.minBots = 0;
+                });
+              }
+
+              activeTournaments.push(webTournament);
+              webTourneyId++;
+            } catch (convErr) {
+              console.error("TournamentX conversion error:", convErr);
             }
-
-            const partySize = wt.PartySize || 2;
-            const maps = (wt.Phases && wt.Phases[0] && wt.Phases[0].Maps) || [];
-            const permittedLevels = maps.length > 0 ? maps : ["level19_block"];
-            const roundCount = wt.RoundCount || 1;
-            const tournamentId = parseInt(wt.TournamentId) || (webTourneyId + 500);
-
-            const tourneyStartTime = wt.StartTime ? new Date(wt.StartTime) : startTime;
-            const tourneyEndTime = wt.EndTime ? new Date(wt.EndTime) : endTime;
-
-            const color = wt.TournamentColor || "#667eea";
-
-            const webTournament = {
-              id: tournamentId,
-              type: 1,
-              isEnabled: true,
-              minVersion: "0.50",
-              name: wt.TournamentName || "Website Tournament",
-              nameKey: wt.TournamentName || "Website Tournament",
-              descriptionKey: wt.TournamentName || "Website Tournament",
-              listItemBackgroundImage: "STPBlockDash_Background_Image_Tournaments_Card",
-              detailsPanelBackgroundImage: "STPBlockDash_Background_Image_Tournaments",
-              prizeBannerColour: color,
-              headerColour: color,
-              mapListGradientColourTop: color,
-              mapListGradientColourBottom: color,
-              detailsPanelBorderColourTop: color,
-              detailsPanelBorderColourBottom: color,
-              colourData: {
-                detailsPanelMainColour: color,
-                detailsPanelBorderColour: color,
-                headerGradientRight: color,
-                headerGradientLeft: color,
-                infoWidgetsGradientRight: color,
-                infoWidgetsGradientLeft: color,
-                infoWidgetsBorderColour: color
-              },
-              listPriority: 50,
-              minPlayers: 2,
-              maxPlayers: partySize === 1 ? 2 : partySize * 2,
-              maxRounds: roundCount,
-              minMatchmakingSeconds: 5,
-              entryCurrencyType: "gems",
-              entryCurrencyCost: 0,
-              entryCurrencyType2: "gems",
-              entryCurrencyCost2: 0,
-              areEmotesRestricted: true,
-              prohibitedEmotes: [2, 4, 5, 6],
-              rounds: [{
-                roundOrder: 1,
-                maxPlayersToProgress: 1,
-                minPlayersPerMatch: partySize === 1 ? 2 : partySize,
-                maxPlayersPerMatch: partySize === 1 ? 2 : partySize,
-                areLevelsRestricted: true,
-                permittedLevels: permittedLevels
-              }],
-              awards: [{
-                placementRangeLowest: 1,
-                placementRangeHighest: 1,
-                awardId: 4,
-                type: "CURRENCY",
-                amount: 0,
-                awardJson: { name: "gems" }
-              }],
-              startTime: tourneyStartTime.toISOString(),
-              endTime: tourneyEndTime.toISOString(),
-              StartDateTime: tourneyStartTime.toISOString(),
-              EndDateTime: tourneyEndTime.toISOString(),
-              Visible: true,
-              maxBots: 0,
-              minBots: 0,
-              startingUsers: partySize === 1 ? 2 : partySize * 2
-            };
-
-            if (webTournament.rounds) {
-              webTournament.rounds.forEach(r => {
-                r.maxBots = 0;
-                r.minBots = 0;
-              });
-            }
-
-            activeTournaments.push(webTournament);
-            webTourneyId++;
-          } catch (convErr) {
-            console.error("TournamentX conversion error:", convErr);
           }
         }
-      } catch (dbErr) {
-        console.error("TournamentX website DB query error:", dbErr);
+      } catch (httpErr) {
+        console.error("TournamentX website HTTP error:", httpErr.message || httpErr);
       }
 
       // Atualiza para uso em outras rotas
