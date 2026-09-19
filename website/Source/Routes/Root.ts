@@ -841,7 +841,7 @@ App.post("/api/admin/player/rename", async (req, res) => {
     if (!admin) return res.status(401).json({ success: false, message: "Not authenticated" });
     if (admin.role !== "admin") return res.status(403).json({ success: false, message: "Admin access required" });
 
-    const { playerId, newUsername } = req.body;
+    const { playerId, newUsername, color } = req.body;
 
     if (!playerId || !newUsername) {
       return res.status(400).json({ success: false, message: "playerId and newUsername are required" });
@@ -872,9 +872,14 @@ App.post("/api/admin/player/rename", async (req, res) => {
       return res.status(400).json({ success: false, message: "Username already taken" });
     }
 
+    const updateFields: any = { username: newUsername };
+    if (color && typeof color === "string" && /^#[0-9A-Fa-f]{6}$/.test(color)) {
+      updateFields.nameColor = color;
+    }
+
     const result = await users.findOneAndUpdate(
       { _id: objectId },
-      { $set: { username: newUsername } },
+      { $set: updateFields },
       { returnDocument: "after" }
     );
 
