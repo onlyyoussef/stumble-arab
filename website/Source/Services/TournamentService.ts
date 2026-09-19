@@ -290,12 +290,41 @@ export async function createTournament(params: TournamentCreationParams): Promis
  * Sends webhook notification for tournament (imported from Database.ts logic)
  */
 async function sendTournamentWebhook(tournament: ITournament): Promise<void> {
-  // Send webhook using Database handler
+  const webhookUrl = process.env.WEBHOOK_URI || process.env.TOURNAMENT_WEBHOOK;
+  if (!webhookUrl) {
+    console.log(`[TournamentService] No webhook URL configured, skipping`);
+    return;
+  }
+
   try {
-    const Database = await import("../Handlers/Database");
-    // Check if SendWebhook exists (it might not be exported)
-    // For now, skip webhook to avoid circular dependency
-    console.log(`[TournamentService] Webhook notification skipped for ${tournament.TournamentId}`);
+    const fetch = (await import("node-fetch")).default;
+    const statusMap: Record<number, string> = { 0: "Not Started", 1: "Open", 2: "Closed", 3: "Finished", 4: "Canceled", 5: "Running" };
+    const modeMap: Record<number, string> = { 1: "1v1", 2: "2v2", 3: "3v3", 4: "4v4" };
+    const regionMap: Record<string, string> = { "0": "NA East", "1": "NA West", "2": "Europe", "3": "Asia", "4": "Other" };
+
+    const embed = {
+      title: "🏆 New Tournament Created!",
+      description: `**${tournament.TournamentName}**`,
+      color: 5814783,
+      fields: [
+        { name: "Mode", value: modeMap[tournament.PartySize] || `${tournament.PartySize}v${tournament.PartySize}`, inline: true },
+        { name: "Region", value: regionMap[tournament.Region?.toString()] || tournament.Region?.toString() || "Unknown", inline: true },
+        { name: "Max Players", value: String(tournament.MaxInvites), inline: true },
+        { name: "Rounds", value: String(tournament.RoundCount), inline: true },
+        { name: "Map", value: tournament.Phases?.[0]?.Maps?.[0] || "N/A", inline: true },
+        { name: "Status", value: statusMap[tournament.Status] || String(tournament.Status), inline: true },
+        { name: "ID", value: `\`${tournament.TournamentId}\``, inline: false },
+      ],
+      timestamp: new Date().toISOString(),
+      footer: { text: "Stumble Arab" }
+    };
+
+    await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ embeds: [embed] })
+    });
+    console.log(`[TournamentService] Webhook sent for tournament ${tournament.TournamentId}`);
   } catch (error) {
     console.error("[TournamentService] Failed to send webhook:", error);
   }
