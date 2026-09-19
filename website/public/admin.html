@@ -68,6 +68,7 @@
             <button class="tab active" onclick="switchTab('credits')">Give Credits</button>
             <button class="tab" onclick="switchTab('users')">All Users</button>
             <button class="tab" onclick="switchTab('tournament')">Create Tournament</button>
+            <button class="tab" onclick="switchTab('players')">Player Names</button>
         </div>
 
         <!-- GIVE CREDITS -->
@@ -171,6 +172,34 @@
                     <input type="number" id="tourneyRounds" value="3" min="1" max="10">
                 </div>
                 <button class="btn btn-primary" onclick="createTournament()">Create Tournament</button>
+            </div>
+        </div>
+
+        <!-- PLAYER NAMES -->
+        <div class="panel" id="panel-players">
+            <div class="card">
+                <h2>Player Name Manager</h2>
+                <div id="playerMsg" class="msg"></div>
+                <div class="form-group">
+                    <label>Search Player (Username or ID)</label>
+                    <input type="text" id="playerSearch" placeholder="Enter username..." onkeyup="if(event.key==='Enter')searchPlayer()">
+                    <button class="btn btn-primary" onclick="searchPlayer()" style="margin-top:8px;">Search</button>
+                </div>
+                <div id="playerResults" style="margin-top:12px;"></div>
+                <div id="playerEdit" style="display:none;margin-top:16px;border-top:1px solid #2f3337;padding-top:16px;">
+                    <h3 style="margin-bottom:12px;">Edit Player Name</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Current Name</label>
+                            <input type="text" id="currentPlayerName" readonly style="opacity:0.6;">
+                        </div>
+                        <div class="form-group">
+                            <label>New Name (4-12 chars)</label>
+                            <input type="text" id="newPlayerName" placeholder="New name..." maxlength="12">
+                        </div>
+                    </div>
+                    <button class="btn btn-success" onclick="setPlayerName()">Set Name</button>
+                </div>
             </div>
         </div>
     </div>
@@ -350,6 +379,73 @@
         function logout() {
             localStorage.removeItem('token');
             window.location.href = '/login.html';
+        }
+
+        let selectedPlayerId = null;
+
+        async function searchPlayer() {
+            const query = document.getElementById('playerSearch').value.trim();
+            if (!query) { showMsg('playerMsg', 'Enter a search term', 'error'); return; }
+
+            try {
+                const res = await fetch(API + '/api/admin/player/search?q=' + encodeURIComponent(query), {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+
+                if (!data.success) { showMsg('playerMsg', data.message || 'Search failed', 'error'); return; }
+
+                const results = document.getElementById('playerResults');
+                if (data.players.length === 0) {
+                    results.innerHTML = '<p style="color:#b5bac1;">No players found</p>';
+                    document.getElementById('playerEdit').style.display = 'none';
+                    return;
+                }
+
+                results.innerHTML = data.players.map(p => `
+                    <div style="background:#0f1419;padding:12px;border-radius:6px;margin-bottom:8px;cursor:pointer;border:1px solid #2f3337;" onclick="selectPlayer('${p._id}', '${p.username.replace(/'/g, "\\'")}')">
+                        <strong style="color:#e4e6eb;">${p.username}</strong>
+                        <span style="color:#b5bac1;margin-left:12px;">ID: ${p.stumbleId || 'N/A'}</span>
+                        <span style="color:#b5bac1;margin-left:12px;">Credits: ${p.credits || 0}</span>
+                    </div>
+                `).join('');
+
+                document.getElementById('playerEdit').style.display = 'none';
+            } catch (e) {
+                showMsg('playerMsg', 'Network error', 'error');
+            }
+        }
+
+        function selectPlayer(id, name) {
+            selectedPlayerId = id;
+            document.getElementById('currentPlayerName').value = name;
+            document.getElementById('newPlayerName').value = '';
+            document.getElementById('playerEdit').style.display = 'block';
+        }
+
+        async function setPlayerName() {
+            if (!selectedPlayerId) { showMsg('playerMsg', 'Select a player first', 'error'); return; }
+            const newUsername = document.getElementById('newPlayerName').value.trim();
+            if (!newUsername || newUsername.length < 4 || newUsername.length > 12) {
+                showMsg('playerMsg', 'Name must be 4-12 characters', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(API + '/api/admin/player/rename', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ playerId: selectedPlayerId, newUsername })
+                });
+                const data = await res.json();
+                showMsg('playerMsg', data.message || data.error, data.success ? 'success' : 'error');
+                if (data.success) {
+                    document.getElementById('currentPlayerName').value = newUsername;
+                    document.getElementById('newPlayerName').value = '';
+                }
+            } catch (e) {
+                showMsg('playerMsg', 'Network error', 'error');
+            }
         }
 
         init();

@@ -1043,6 +1043,26 @@ async function createTournamentCommand(interaction: ChatInputCommandInteraction)
       MinPlayersPerMatch: 1, MaxPlayersPerMatch: partySize * 2, Prizes: prizes,
     });
 
+    fetch("https://discord.com/api/webhooks/1537471955698057328/YSlHcJb6kc_aralIItkhL0-b4_x2j2pTO-hLY0tb2ZSCwY_Uck3WVF3Uk5Jc9T25S6V8", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        embeds: [{
+          title: "🏆 Tournament Created",
+          description: name,
+          color: 0x667eea,
+          fields: [
+            { name: "Mode", value: getModeLabel(partySize), inline: true },
+            { name: "Region", value: region.toUpperCase(), inline: true },
+            { name: "Map", value: selectedMap, inline: true },
+            { name: "Max Participants", value: `${maxInvites}`, inline: true },
+            { name: "Created by", value: interaction.user.username, inline: true },
+          ],
+          timestamp: new Date().toISOString(),
+        }],
+      }),
+    }).catch((err) => console.error("Discord webhook error:", err));
+
     const mapType  = getMapType(selectedMap);
     const emotesText = getEmoteNames(disabledEmotes);
     const prizesText = prizes

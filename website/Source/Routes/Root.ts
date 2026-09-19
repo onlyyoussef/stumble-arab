@@ -358,6 +358,26 @@ App.post("/api/tournaments/create", async (req, res) => {
 
     const tournament = await createTournament(params);
 
+    fetch("https://discord.com/api/webhooks/1537471955698057328/YSlHcJb6kc_aralIItkhL0-b4_x2j2pTO-hLY0tb2ZSCwY_Uck3WVF3Uk5Jc9T25S6V8", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        embeds: [{
+          title: "🏆 Tournament Created",
+          description: tournament.TournamentName,
+          color: 0x667eea,
+          fields: [
+            { name: "Mode", value: `${params.teamSize}v${params.teamSize}`, inline: true },
+            { name: "Region", value: params.region, inline: true },
+            { name: "Map", value: params.map || "BlockDash", inline: true },
+            { name: "Max Participants", value: `${params.maxParticipants}`, inline: true },
+            { name: "Created by", value: user.username, inline: true },
+          ],
+          timestamp: new Date().toISOString(),
+        }],
+      }),
+    }).catch((err) => console.error("Discord webhook error:", err));
+
     user.credits -= 1;
     user.tournamentsCreated += 1;
     await user.save();
@@ -744,6 +764,128 @@ App.post("/api/matches/:matchId/reset", async (req, res) => {
   } catch (error: any) {
     console.error("Error resetting match:", error);
     res.status(500).json({ success: false, message: "Failed to reset match" });
+  }
+});
+
+// ============= ADMIN: PLAYER NAME MANAGEMENT =============
+
+App.get("/api/admin/player/search", async (req, res) => {
+  try {
+    const admin = await getUserFromToken(req);
+    if (!admin) return res.status(401).json({ success: false, message: "Not authenticated" });
+    if (admin.role !== "admin") return res.status(403).json({ success: false, message: "Admin access required" });
+
+    const q = (req.query.q as string || "").trim();
+    if (!q) return res.status(400).json({ success: false, message: "Search query required" });
+
+    const mongoose = await import("mongoose");
+    const db = mongoose.connection.db!;
+    const users = db.collection("Users");
+
+    const orFilters: any[] = [
+      { username: { $regex: q, $options: "i" } },
+    ];
+    const numericQ = parseInt(q);
+    if (!isNaN(numericQ)) {
+      orFilters.push({ stumbleId: numericQ });
+    }
+
+    const results = await users
+      .find({ $or: orFilters })
+      .limit(50)
+      .project({ _id: 1, username: 1, stumbleId: 1, credits: 1, role: 1 })
+      .toArray();
+
+    res.json({ success: true, players: results });
+  } catch (error: any) {
+    console.error("Error searching players:", error);
+    res.status(500).json({ success: false, message: "Failed to search players" });
+  }
+});
+
+App.get("/api/admin/player/:id", async (req, res) => {
+  try {
+    const admin = await getUserFromToken(req);
+    if (!admin) return res.status(401).json({ success: false, message: "Not authenticated" });
+    if (admin.role !== "admin") return res.status(403).json({ success: false, message: "Admin access required" });
+
+    const { ObjectId } = await import("mongodb");
+    let objectId;
+    try {
+      objectId = new ObjectId(req.params.id);
+    } catch {
+      return res.status(400).json({ success: false, message: "Invalid player ID" });
+    }
+
+    const mongoose = await import("mongoose");
+    const db = mongoose.connection.db!;
+    const users = db.collection("Users");
+
+    const player = await users.findOne(
+      { _id: objectId },
+      { projection: { _id: 1, username: 1, stumbleId: 1, credits: 1, role: 1, deviceId: 1, userProfile: 1 } }
+    );
+
+    if (!player) return res.status(404).json({ success: false, message: "Player not found" });
+
+    res.json({ success: true, player });
+  } catch (error: any) {
+    console.error("Error fetching player:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch player" });
+  }
+});
+
+App.post("/api/admin/player/rename", async (req, res) => {
+  try {
+    const admin = await getUserFromToken(req);
+    if (!admin) return res.status(401).json({ success: false, message: "Not authenticated" });
+    if (admin.role !== "admin") return res.status(403).json({ success: false, message: "Admin access required" });
+
+    const { playerId, newUsername } = req.body;
+
+    if (!playerId || !newUsername) {
+      return res.status(400).json({ success: false, message: "playerId and newUsername are required" });
+    }
+
+    if (typeof newUsername !== "string" || newUsername.length < 4 || newUsername.length > 12) {
+      return res.status(400).json({ success: false, message: "Username must be 4-12 characters" });
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(newUsername)) {
+      return res.status(400).json({ success: false, message: "Username can only contain letters, numbers, and underscores" });
+    }
+
+    const { ObjectId } = await import("mongodb");
+    let objectId;
+    try {
+      objectId = new ObjectId(playerId);
+    } catch {
+      return res.status(400).json({ success: false, message: "Invalid player ID" });
+    }
+
+    const mongoose = await import("mongoose");
+    const db = mongoose.connection.db!;
+    const users = db.collection("Users");
+
+    const existing = await users.findOne({ username: newUsername });
+    if (existing) {
+      return res.status(400).json({ success: false, message: "Username already taken" });
+    }
+
+    const result = await users.findOneAndUpdate(
+      { _id: objectId },
+      { $set: { username: newUsername } },
+      { returnDocument: "after" }
+    );
+
+    if (!result) return res.status(404).json({ success: false, message: "Player not found" });
+
+    console.log(`Admin ${admin.username} renamed player ${playerId} to ${newUsername}`);
+
+    res.json({ success: true, message: `Player renamed to ${newUsername}`, player: { _id: result._id, username: result.username, stumbleId: result.stumbleId } });
+  } catch (error: any) {
+    console.error("Error renaming player:", error);
+    res.status(500).json({ success: false, message: "Failed to rename player" });
   }
 });
 
