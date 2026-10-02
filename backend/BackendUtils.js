@@ -3695,7 +3695,7 @@ class TournamentXController {
       const startTime = new Date(rotationSeed * msInDay + offset);
       const endTime = new Date((rotationSeed + 1) * msInDay + offset);
 
-      const rankData = UserModel.getRankData(user.skillRating || 0);
+      const rankData = UserModel.getRankData((user && user.skillRating) || 0);
       const assets = UserModel.getRankAssets(rankData.rankId);
 
       const activeTournaments = activeIndices.map((idx, i) => {
