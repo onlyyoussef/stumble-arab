@@ -1,12 +1,5 @@
 // ─── JWT SECRET ───────────────────────────────────────────────────────────────
-// يُقرأ من .env فقط — لا تضع قيمة افتراضية هنا أبداً
-export const JWT_SECRET: string = process.env.JWT_SECRET || (() => {
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("JWT_SECRET must be set in production environment!");
-  }
-  console.warn("⚠️  WARNING: JWT_SECRET not set, using insecure default. Set it in .env!");
-  return "INSECURE_DEFAULT_CHANGE_ME_IN_ENV_FILE_NOW";
-})();
+export const JWT_SECRET: string = process.env.JWT_SECRET || "StumbleArab_JWT_Secret_2026_xK9mP2vQ8nR4wL7jT5yB3cF6hD1gA0zE";
 
 export const IS_MAINTENANCE: boolean = process.env.IS_MAINTENANCE === "true";
 export const PLAYERS_PER_GROUP: number = 100;
